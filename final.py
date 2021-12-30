@@ -1,4 +1,5 @@
 import time
+import csv
 import requests
 from bs4 import BeautifulSoup
 
@@ -12,7 +13,7 @@ liste_categorie = soup.find('ul', {'class': 'nav nav-list'}).findAll('a')
 for categorie in liste_categorie:
     link_category = 'https://books.toscrape.com/catalogue/' + categorie['href']
     new_link = requests.get(link_category)
-    
+
     if new_link.ok:
         soupe = BeautifulSoup(new_link.content, 'html.parser')
 
@@ -73,6 +74,21 @@ for categorie in liste_categorie:
                         book['description'] = texte
                 except:
                     print('Pas de description')
+
+                title_book_csv = soup_book.find('h1').text.strip()
+                
+                if ":" in title_book_csv:
+                    title_book_csv = title_book_csv.replace(":", "_")
+        
+                if "?" in title_book_csv:
+                    title_book_csv = title_book_csv.replace("?", "")
+        
+                if "**" in title_book_csv:
+                    title_book_csv = title_book_csv.replace("**", "")
+
+                with open(title_book_csv + '.csv', 'w', newline='') as csv_file:
+                    spamwriter = csv.writer(csv_file, dialect='excel')
+                    spamwriter.writerows([[titre], [upcs], [prix], [prixe], [stocke], [vue], [texte]])
                 
                 print(book)
                 print("")
