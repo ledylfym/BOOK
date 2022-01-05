@@ -86,9 +86,18 @@ for categorie in liste_categorie:
                 if "**" in title_book_csv:
                     title_book_csv = title_book_csv.replace("**", "")
 
-                with open(title_book_csv + '.csv', 'w', newline='') as csv_file:
+                if "*" in title_book_csv:
+                    title_book_csv = title_book_csv.replace("*", "")
+
+                if "/" in title_book_csv:
+                    title_book_csv = title_book_csv.replace("/", "_")
+            
+                if "\"" in title_book_csv:
+                    title_book_csv = title_book_csv.replace("\"", "_")
+
+                with open(title_book_csv + '.csv', 'w', newline='', encoding='utf-8') as csv_file:
                     spamwriter = csv.writer(csv_file, dialect='excel')
-                    spamwriter.writerows([[titre], [upcs], [prix], [prixe], [stocke], [vue], [texte]])
+                    spamwriter.writerows([[title_book_csv], [upcs], [prix], [prixe], [stocke], [vue], [title_category], [texte]])
                 
                 print(book)
                 print("")
@@ -113,6 +122,18 @@ for categorie in liste_categorie:
         
         if "**" in name:
             name = name.replace("**", "")
+
+        if "*" in name:
+            name = name.replace("*", "")
+
+        if "/" in name:
+            name = name.replace("/", "_")
+
+        if '"' in name:
+            name = name.replace('"', '_')
+
+        if "..." in name:
+            name = name.replace("...", "")
     
         with open(name + '.jpg','wb') as f:
             response = requests.get(image_link)
