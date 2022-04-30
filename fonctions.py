@@ -1,6 +1,7 @@
 import time
 from pathlib import Path
 import csv
+from slugify import slugify
 from unicodedata import category
 from webbrowser import get
 import requests
@@ -35,6 +36,8 @@ def get_name_categories(url):
     title_category = soup.find('h1').text.strip()
     print(f'Récupération des livres de {title_category}')
     print("")
+
+    return title_category
 
 def get_urls_books(url):
     reponse = requests.get(url)
@@ -116,6 +119,18 @@ def get_data_book(url):
             star = "Pas de notes"
         book['stars'] = star
 
+    image_book = soup.find_all('img')
+    for image in image_book:
+        source = image['src']
+        new_source = source[3:]
+        if '../' in new_source:
+            try:
+                new_source = source[6:]
+            except:
+                print('erreur url image')
+        link_image = f'https://books.toscrape.com/{new_source}'
+        book['image'] = link_image
+
     return book
 
 def main():
@@ -143,6 +158,9 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=header, dialect="excel")
             writer.writeheader()
             writer.writerows(books_data)
+
+        Path("data/img").mkdir(parents=True, exist_ok=True)
+
 
 
 if __name__ == "__main__":
