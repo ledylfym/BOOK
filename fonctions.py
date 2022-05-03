@@ -133,6 +133,22 @@ def get_data_book(url):
 
     return book
 
+def get_link_images(url):
+    reponse = requests.get(url)
+    soup = BeautifulSoup(reponse.text, 'html.parser')
+    book_image = soup.find_all('img')
+    for image in book_image:
+        source = image['src']
+        new_source = source[3:]
+        if '../' in new_source:
+            try:
+                new_source = source[6:]
+            except:
+                print('erreur url image')
+        link_image = f'https://books.toscrape.com/{new_source}'
+
+    return link_image
+
 def main():
     categories_urls = get_links_urls_and_name_categories(url_base)
     for category_url in categories_urls:
@@ -152,7 +168,7 @@ def main():
         
         Path("data/csv").mkdir(parents=True, exist_ok=True)
 
-        header = books_data[1].keys()
+        header = books_data[0].keys()
 
         with open(f"data/{name_categories}.csv", "w", encoding="utf-8-sig", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=header, dialect="excel")
@@ -160,6 +176,16 @@ def main():
             writer.writerows(books_data)
 
         Path("data/img").mkdir(parents=True, exist_ok=True)
+
+        with open(f"data/{name_categories}.jpg", "wb") as f:
+            for book_image in books_data:
+                image_book = get_link_images(book_image)
+                reponse = requests.get(image_book)
+                f.write(reponse.content)
+                f.close()
+        
+
+
 
 
 
