@@ -28,7 +28,7 @@ def get_links_urls_categories(url_base):
     return categories_urls
     
 def get_name_categories(url):
-    categorie_name = url[51:]    
+    categorie_name = url[52:]    
     
     slash_position = categorie_name.index("_")
     categorie_name = categorie_name[:slash_position]
@@ -65,12 +65,12 @@ def get_data_book(url):
     if not reponse.ok:
         print('Une erreur est survenue dans la récupération du livre')
 
-    titre = soup.find('h1').text.strip()
-    book['titre'] = titre
+    title = soup.find('h1').text.strip()
+    book['title'] = title
 
     category_li = soup.find_all("li")[2]
     category = category_li.a.text
-    book['categorie'] = category
+    book['categories'] = category
 
     upc = soup.find('th', text='UPC')
     for a in upc:
@@ -80,17 +80,17 @@ def get_data_book(url):
     prix_tax = soup.find('th', text='Price (incl. tax)')
     for b in prix_tax:
         prix = b.find_next('td').text.strip()
-        book['prix_tax'] = prix
+        book['price_tax'] = prix[1:]
 
     prix_sans_tax = soup.find('th', text='Price (excl. tax)')
     for c in prix_sans_tax:
-        prixe = c.find_next('td').text.strip()
-        book['prix_sans_tax'] = prixe
+        prix = c.find_next('td').text.strip()
+        book['price_no_tax'] = prix[1:]
 
     stock = soup.find('th', text='Availability')
     for d in stock:
         stocke = d.find_next('td').text.strip()
-        book['stock'] = stocke
+        book['stock'] = stocke[11:12]
 
     try:
         description = soup.find('h2', text='Product Description')
@@ -116,7 +116,7 @@ def get_data_book(url):
             star = "Pas de notes"
         book['stars'] = star
 
-    image_book = soup.find_all('img')
+    image_book = soup.find('img')
     for image in image_book:
         source = image['src']
         new_source = source[3:]
@@ -126,7 +126,9 @@ def get_data_book(url):
             except:
                 print('erreur url image')
         link_image = f'https://books.toscrape.com/{new_source}'
-        book['image'] = link_image
+        book['image_url'] = link_image
+        book['image_file'] = "data/img/{slugify(book.get('title'))}.jpg"
+
 
     return book
 
@@ -149,23 +151,22 @@ def get_link_images(url):
 def main():
     categories_urls = get_links_urls_categories(url_base)
     for category_url in categories_urls:
-        print(category_url)
+        # print(category_url)
         name_categories = get_name_categories(category_url)
-        print(name_categories)
+        print(f"\nTraitement de la catégorie : {name_categories} en cours ...")
         books_urls = get_urls_books(category_url)
-        print(books_urls)
+        # print(books_urls)
         books_data = []
+        print(f"\nRécupération des livres de la catégorie : {name_categories} en cours ...")
         for book_url in books_urls:
             book_data = get_data_book(book_url)
             books_data.append(book_data)
         
-        print("")
-        print(books_data)
-        print("")
-        
         Path("data/csv").mkdir(parents=True, exist_ok=True)
 
         header = books_data[0].keys()
+
+        print(f"\nSauvegarde des livres de la catégorie : {name_categories} en cours ...")
 
         with open(f"data/csv/{name_categories}.csv", "w", encoding="utf-8-sig", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=header, dialect="excel")
@@ -174,10 +175,12 @@ def main():
 
         Path("data/img").mkdir(parents=True, exist_ok=True)
 
-        with open(f"data/img/{name_categories}.jpg", "wb") as f:
-            for book_image in books_data:
-                image_book = get_link_images(book_image)
-                reponse = requests.get(image_book)
+        print(f"\nRécupération des images de la catégorie : {name_categories} en cours ...")
+
+        for book in books_data:
+            with open(f"data/img/{slugify(book.get('title'))}.jpg", "wb") as f:
+                image_url = book.get("image_url")
+                reponse = requests.get(image_url)
                 f.write(reponse.content)
         
 
