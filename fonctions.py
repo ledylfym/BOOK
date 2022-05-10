@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 url_base = "https://books.toscrape.com/catalogue/page-1.html"
 
-def get_links_urls_and_name_categories(url_base):
+def get_links_urls_categories(url_base):
     """Return list of categories urls"""
     reponse = requests.get(url_base)
     soup = BeautifulSoup(reponse.text, 'html.parser')
@@ -28,16 +28,13 @@ def get_links_urls_and_name_categories(url_base):
     return categories_urls
     
 def get_name_categories(url):
-    reponse = requests.get(url)
-    soup = BeautifulSoup(reponse.text, 'html.parser')
-    if not reponse.ok:
-        print('Une erreur dans lurl')
-
-    title_category = soup.find('h1').text.strip()
-    print(f'Récupération des livres de {title_category}')
+    categorie_name = url[51:]    
+    
+    slash_position = categorie_name.index("_")
+    categorie_name = categorie_name[:slash_position]
+    print(f'Récupération des livres de {categorie_name}')
     print("")
-
-    return title_category
+    return categorie_name
 
 def get_urls_books(url):
     reponse = requests.get(url)
@@ -136,7 +133,7 @@ def get_data_book(url):
 def get_link_images(url):
     reponse = requests.get(url)
     soup = BeautifulSoup(reponse.text, 'html.parser')
-    book_image = soup.find_all('img')
+    book_image = soup.find('div', class_='item active')
     for image in book_image:
         source = image['src']
         new_source = source[3:]
@@ -150,7 +147,7 @@ def get_link_images(url):
     return link_image
 
 def main():
-    categories_urls = get_links_urls_and_name_categories(url_base)
+    categories_urls = get_links_urls_categories(url_base)
     for category_url in categories_urls:
         print(category_url)
         name_categories = get_name_categories(category_url)
@@ -170,19 +167,18 @@ def main():
 
         header = books_data[0].keys()
 
-        with open(f"data/{name_categories}.csv", "w", encoding="utf-8-sig", newline="") as csvfile:
+        with open(f"data/csv/{name_categories}.csv", "w", encoding="utf-8-sig", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=header, dialect="excel")
             writer.writeheader()
             writer.writerows(books_data)
 
         Path("data/img").mkdir(parents=True, exist_ok=True)
 
-        with open(f"data/{name_categories}.jpg", "wb") as f:
+        with open(f"data/img/{name_categories}.jpg", "wb") as f:
             for book_image in books_data:
                 image_book = get_link_images(book_image)
                 reponse = requests.get(image_book)
                 f.write(reponse.content)
-                f.close()
         
 
 
@@ -230,5 +226,16 @@ with open(f"data/exemple.csv", "w", encoding="utf-8-sig", newline="") as csvfile
     writer = csv.DictWriter(csvfile, fieldnames=header, dialect="excel")
     writer.writeheader()
     writer.writerows(books_data)
+
+def get_categorie_name(url: str) -> str:
+    ""Return the name of the categorie from the url""
+
+    # Extract the last part of the url containing the category name
+    categorie_name = url[51:]    
+    
+    # Find the position of the "_" char
+    slash_position = categorie_name.index("_")
+    categorie_name = categorie_name[:slash_position]
+    return categorie_name
 
 """
