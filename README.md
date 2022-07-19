@@ -4,16 +4,17 @@ Is a project of OpenClassroom "Book to Scrape"
 
 The language of my project is python and it works on Windows
 
-# INSTALLATION
-Firstly, we go create a virtual environnement (V.E). For this, you open your terminal in Visual Studio or your command prompt and you write this code :
-"python -m venv (name of virtual environnement)"
-for my project, the name of V.E is "env".
-Now, we go copy the requierements to import all elements of my V.E. The code is :
+#Create virtual environnement on python (step 1)
+python -m venv env
 
-# USAGE
-Open your terminal, actiavte your V.E, import all installations of requieremnts and run the code.
-Wait a moment and you can see the evolution on the code.
-It's good, you have all of categories and books of the site "Book to Scrape"
+#Activate virtual environnement (step 2)
+env\script\activate.bat
+
+#Installation of differents mods (step 3)
+pip install -r requirements.txt
+
+#Start program (final step)
+python scrap.py
 
 # SUPPORT
 I use Visual Studio Code.
